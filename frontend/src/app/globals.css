@@ -3,6 +3,8 @@
 :root {
   --background: #d9d9d9;
   --foreground: #1f2833;
+  --dot-bg: #d9d9d9;
+  --dot-color: #0b0c10;
 }
 
 @theme inline {
@@ -15,6 +17,8 @@
   :root {
     --background: #1f2833;
     --foreground: #d9d9d9;
+    --dot-bg: #1f2833;
+    --dot-color: #c5c6c7;
   }
 }
 
@@ -22,4 +26,36 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Sora, Inter, sans-serif;
+  --dot-size: 1.5px;
+  --dot-space: 50px;
+  background:
+    linear-gradient(
+        90deg,
+        var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+        transparent 1%
+      )
+      center / var(--dot-space) var(--dot-space),
+    linear-gradient(
+        var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+        transparent 1%
+      )
+      center / var(--dot-space) var(--dot-space),
+    var(--dot-color);
+  background-position:
+    0% 0%,
+    0% 0%;
+  animation: moveBackground 100s linear infinite;
+}
+
+@keyframes moveBackground {
+  0% {
+    background-position:
+      0% 0%,
+      0% 0%;
+  }
+  100% {
+    background-position:
+      100% 100%,
+      100% 100%;
+  }
 }
