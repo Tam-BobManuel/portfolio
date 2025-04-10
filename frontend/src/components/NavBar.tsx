@@ -24,6 +24,7 @@ export default function Navbar() {
   const navItemsRef = useRef([]);
   const mainNavRef = useRef(null);
   const logoRef = useRef<HTMLElement | null>(null);
+  const logoAnimationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Set mounted state after component mounts to prevent hydration issues
   useEffect(() => {
@@ -50,33 +51,73 @@ export default function Navbar() {
     }
   }, []);
 
-  // Logo hover animation
-  useGSAP(() => {
+  // Function to animate logo
+  const animateLogo = (isHovering: boolean) => {
     if (!logoRef.current) return;
 
-    // Create hover animation for logo
-    logoRef.current.addEventListener("mouseenter", () => {
+    // Clear any existing timeout to prevent conflicts
+    if (logoAnimationTimeoutRef.current) {
+      clearTimeout(logoAnimationTimeoutRef.current);
+      logoAnimationTimeoutRef.current = null;
+    }
+
+    if (isHovering) {
+      // Animate to hover state
       gsap.to(logoRef.current, {
         rotation: 10,
         scale: 1.05,
         duration: 0.3,
         ease: "power2.out",
       });
-    });
 
-    logoRef.current.addEventListener("mouseleave", () => {
+      // Set timeout to revert animation after 5 seconds
+      logoAnimationTimeoutRef.current = setTimeout(() => {
+        gsap.to(logoRef.current, {
+          rotation: 0,
+          scale: 1,
+          duration: 0.3,
+          ease: "power2.in",
+        });
+      }, 5000);
+    } else {
+      // Immediately revert to normal state
       gsap.to(logoRef.current, {
         rotation: 0,
         scale: 1,
         duration: 0.3,
         ease: "power2.in",
       });
+    }
+  };
+
+  // Logo hover animation
+  useGSAP(() => {
+    if (!logoRef.current) return;
+
+    // Create hover animation for logo
+    logoRef.current.addEventListener("mouseenter", () => {
+      animateLogo(true);
+    });
+
+    logoRef.current.addEventListener("mouseleave", () => {
+      animateLogo(false);
+    });
+
+    // Add touch event for mobile
+    logoRef.current.addEventListener("touchstart", () => {
+      animateLogo(true);
     });
 
     return () => {
       if (logoRef.current) {
         logoRef.current.removeEventListener("mouseenter", () => {});
         logoRef.current.removeEventListener("mouseleave", () => {});
+        logoRef.current.removeEventListener("touchstart", () => {});
+      }
+
+      // Clear timeout on unmount
+      if (logoAnimationTimeoutRef.current) {
+        clearTimeout(logoAnimationTimeoutRef.current);
       }
     };
   }, []);
@@ -187,7 +228,7 @@ export default function Navbar() {
   };
 
   return (
-    <>
+    <div className="absolute top-0 left-0 w-full z-50">
       {/* Main nav bar */}
       <nav
         ref={mainNavRef}
@@ -272,6 +313,6 @@ export default function Navbar() {
           </div>
         </nav>
       )}
-    </>
+    </div>
   );
 }
