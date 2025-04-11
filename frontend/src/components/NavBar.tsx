@@ -19,16 +19,19 @@ const navItems = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const dropdownRef = useRef(null);
-  const iconRef = useRef(null);
-  const navItemsRef = useRef([]);
-  const mainNavRef = useRef(null);
+  const dropdownRef = useRef<HTMLElement | null>(null);
+  const iconRef = useRef<HTMLButtonElement | null>(null);
+  const navItemsRef = useRef<(HTMLElement | null)[]>([]);
+  const mainNavRef = useRef<HTMLElement | null>(null);
   const logoRef = useRef<HTMLElement | null>(null);
   const logoAnimationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Set mounted state after component mounts to prevent hydration issues
   useEffect(() => {
     setMounted(true);
+    
+    // Initialize navItemsRef with proper length
+    navItemsRef.current = Array(navItems.length + 1).fill(null);
   }, []);
 
   // Entry animation for main navbar on page load
@@ -94,25 +97,20 @@ export default function Navbar() {
   useGSAP(() => {
     if (!logoRef.current) return;
 
+    const handleMouseEnter = () => animateLogo(true);
+    const handleMouseLeave = () => animateLogo(false);
+    const handleTouchStart = () => animateLogo(true);
+
     // Create hover animation for logo
-    logoRef.current.addEventListener("mouseenter", () => {
-      animateLogo(true);
-    });
-
-    logoRef.current.addEventListener("mouseleave", () => {
-      animateLogo(false);
-    });
-
-    // Add touch event for mobile
-    logoRef.current.addEventListener("touchstart", () => {
-      animateLogo(true);
-    });
+    logoRef.current.addEventListener("mouseenter", handleMouseEnter);
+    logoRef.current.addEventListener("mouseleave", handleMouseLeave);
+    logoRef.current.addEventListener("touchstart", handleTouchStart);
 
     return () => {
       if (logoRef.current) {
-        logoRef.current.removeEventListener("mouseenter", () => {});
-        logoRef.current.removeEventListener("mouseleave", () => {});
-        logoRef.current.removeEventListener("touchstart", () => {});
+        logoRef.current.removeEventListener("mouseenter", handleMouseEnter);
+        logoRef.current.removeEventListener("mouseleave", handleMouseLeave);
+        logoRef.current.removeEventListener("touchstart", handleTouchStart);
       }
 
       // Clear timeout on unmount
@@ -222,9 +220,7 @@ export default function Navbar() {
 
   // Reset refs array when items change
   const setNavItemRef = (el: HTMLElement | null, index: number) => {
-    if (navItemsRef.current) {
-      (navItemsRef.current as (HTMLElement | null)[])[index] = el;
-    }
+    navItemsRef.current[index] = el;
   };
 
   return (
@@ -235,8 +231,7 @@ export default function Navbar() {
         className="drop-shadow-xl/50 drop-shadow-[#0B0C10] mt-8 px-8 justify-between overflow-hidden items-center bg-[#1F2833] dark:bg-[#E0D7CC] text-[#E0D7CC] dark:text-[#0B0C10] flex flex-row rounded-3xl w-10/12 lg:w-8/12 mx-auto mb-0 relative z-50"
       >
         {/* Nav bar logo with hover effect */}
-        {/* @ts-expect-error */}
-        <div ref={logoRef} className="w-full md:w-auto cursor-pointer">
+        <section ref={logoRef} className="w-full md:w-auto cursor-pointer">
           <Image
             src={Logo}
             alt="Website Logo"
@@ -251,7 +246,7 @@ export default function Navbar() {
             height={45}
             className="hidden dark:block"
           />
-        </div>
+        </section>
         {/* Nav bar links */}
         <div className="flex flex-row gap-4 hidden lg:flex">
           <ul className="flex flex-row gap-6 items-center pr-4">
